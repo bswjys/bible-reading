@@ -1,0 +1,20 @@
+{
+  "name": "성경 통독 — 1년 1~3독",
+  "short_name": "성경 통독",
+  "description": "1년 1~3독 성경 통독 계획, 장별 체크, 밀린 분량 다시 맞추기",
+  "lang": "ko",
+  "dir": "ltr",
+  "start_url": "./?src=homescreen",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#F2F4F6",
+  "theme_color": "#F2F4F6",
+  "icons": [
+    { "src": "icon-180.png?v=1", "sizes": "180x180", "type": "image/png", "purpose": "any" },
+    { "src": "icon-192.png?v=1", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png?v=1", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512-maskable.png?v=1", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
