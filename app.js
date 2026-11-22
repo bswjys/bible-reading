@@ -68,6 +68,11 @@ function fmtDateYear(iso) {
 }
 function num(n) { return Number(n).toLocaleString('ko-KR'); }
 function pct(a, b) { return b ? Math.round((a / b) * 100) : 0; }
+function pctLabel(a, b) {
+  const v = b ? (a / b) * 100 : 0;
+  if (v > 0 && v < 1) return v.toFixed(1) + '%';
+  return Math.round(v) + '%';
+}
 function clampInt(n, lo, hi) { n = Math.round(Number(n)); return isNaN(n) ? lo : Math.min(hi, Math.max(lo, n)); }
 
 /* =========================================================
@@ -469,15 +474,15 @@ function viewToday() {
     html += '<div class="card"><div class="muted">오늘은 배정된 분량이 없어요. 편히 쉬어 가세요.</div></div>';
   }
 
-  const uniquePct = pct(p.unique, TOTAL_CHAPTERS);
+  const uniquePct = pctLabel(p.unique, TOTAL_CHAPTERS);
   html += '<div class="card">' +
-    '<div class="row"><div class="h3">전체 진도</div><span class="pill blue">' + pct(p.passages, p.total) + '%</span></div>' +
+    '<div class="row"><div class="h3">전체 진도</div><span class="pill blue">' + pctLabel(p.passages, p.total) + '</span></div>' +
     '<div class="metric">' +
       '<div class="bar"><i style="width:' + pct(p.passages, p.total) + '%"></i></div>' +
       '<div class="foot"><span>' + num(p.passages) + ' / ' + num(p.total) + '장</span><span>' + settings.rounds + '독 기준</span></div>' +
     '</div>' +
     '<div class="divider"></div>' +
-    '<div class="row" style="font-size:13px;margin-bottom:7px"><span class="muted">읽은 장</span><b>' + num(p.unique) + ' / ' + num(TOTAL_CHAPTERS) + '장 (' + uniquePct + '%)</b></div>' +
+    '<div class="row" style="font-size:13px;margin-bottom:7px"><span class="muted">읽은 장</span><b>' + num(p.unique) + ' / ' + num(TOTAL_CHAPTERS) + '장 (' + uniquePct + ')</b></div>' +
     '<div class="row" style="font-size:13px;margin-bottom:7px"><span class="muted">진행 일차</span><b>' + Math.max(1, Math.min(plan.days, daysBetween(plan.start, t) + 1)) + ' / ' + plan.days + '일</b></div>' +
     '<div class="row" style="font-size:13px"><span class="muted">하루 평균</span><b>' + (p.total / plan.days).toFixed(1) + '장</b></div>' +
   '</div>';
@@ -540,7 +545,7 @@ function viewTable() {
   else if (state.tableTest === 'nt') books = NT_BOOKS;
 
   let html = '<div class="card">' +
-    '<div class="row"><div class="h3">66권 1,189장</div><span class="pill blue">' + pct(read, total) + '%</span></div>' +
+    '<div class="row"><div class="h3">66권 1,189장</div><span class="pill blue">' + pctLabel(read, total) + '</span></div>' +
     '<div class="metric"><div class="bar"><i style="width:' + pct(read, total) + '%"></i></div>' +
     '<div class="foot"><span>' + num(read) + ' / ' + num(total) + '장 읽음</span><span>' + settings.rounds + '독 · ' + (settings.mode === 'mix' ? '섞어 읽기' : '순서대로') + '</span></div></div>' +
     '<div class="seg" style="margin-top:16px">' +
