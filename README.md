@@ -66,7 +66,7 @@ sw.js                 오프라인 캐시 서비스워커
 icon-180/192/512/512-maskable/1024.png  앱 아이콘
 icon_preview.png      아이콘 미리보기
 make_icons.py         아이콘 생성 스크립트 (Pillow)
-test_bible.py         Playwright 검증 스크립트 (117개 항목)
+test_bible.py         Playwright 검증 스크립트 (118개 항목)
 shots/                검증 스크린샷 (390px · 1280px)
 ```
 

@@ -17,6 +17,8 @@ import os
 import socketserver
 import sys
 import threading
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from PIL import Image
 from playwright.sync_api import sync_playwright
@@ -47,6 +49,16 @@ httpd = socketserver.TCPServer(('127.0.0.1', 0), functools.partial(Handler, dire
 PORT = httpd.server_address[1]
 threading.Thread(target=httpd.serve_forever, daemon=True).start()
 BASE = 'http://127.0.0.1:%d/' % PORT
+
+TODAY_D = datetime.now(ZoneInfo('Asia/Seoul')).date()
+def iso_plus(n):
+    return (TODAY_D + timedelta(days=n)).isoformat()
+TODAY = iso_plus(0)
+TOMORROW = iso_plus(1)
+PLUS3 = iso_plus(3)
+MINUS10 = iso_plus(-10)
+END180 = iso_plus(179)
+MONTH_LABEL = '%d년 %d월' % (TODAY_D.year, TODAY_D.month)
 
 
 def new_page(browser, viewport=(390, 844), scale=2):
@@ -122,6 +134,16 @@ with sync_playwright() as p:
         st = pg.evaluate('(o) => window.__bibleDebug.planStats(o)', {'rounds': 1, 'mode': 'seq', 'days': days})
         check('%d일 기간 1,189장' % days, st['slots'] == 1189 and st['unique'] == 1189, st['slots'])
 
+    check('기본 시작일 2026-11-23', pg.evaluate('window.__bibleDebug.summary().settings.start') == '2026-11-23')
+
+    # 오늘 기준으로 '시작 전' 상태를 만들고 흐름을 검증한다 (실행 날짜와 무관하게)
+    pg.evaluate("""(start) => {
+        localStorage.clear();
+        localStorage.setItem('bible-reading-settings', JSON.stringify(
+          {rounds:1, mode:'seq', start:start, days:365}));
+    }""", TOMORROW)
+    pg.reload(wait_until='networkidle')
+
     check('시작 전 안내 표시', pg.is_visible('text=시작 전') and pg.is_visible('text=오늘부터 시작하기'))
     check('갓피플 성경 링크', pg.get_attribute('#view a.btn.god', 'href') == 'https://apps.apple.com/kr/app/id511852665')
     check('갓피플 새 창 열기', pg.get_attribute('#view a.btn.god', 'target') == '_blank')
@@ -130,7 +152,7 @@ with sync_playwright() as p:
     pg.click('[data-action="startToday"]')
     pg.wait_for_timeout(350)
     sm = pg.evaluate('window.__bibleDebug.summary()')
-    check('오늘부터 시작 설정', sm['planStart'] == '2026-11-22' and sm['settings']['start'] == '2026-11-22', sm)
+    check('오늘부터 시작 설정', sm['planStart'] == TODAY and sm['settings']['start'] == TODAY, sm)
     check('1일차 표시', pg.is_visible('text=1일차'))
     check('첫날 3장 배정', sm['todayItems'] == 3, sm['todayItems'])
 
@@ -208,7 +230,7 @@ with sync_playwright() as p:
     pg.click('[data-action="setDays"][data-v="180"]')
     pg.wait_for_timeout(350)
     st = pg.evaluate('window.__bibleDebug.summary()')
-    check('180일 기간 적용', st['settings']['days'] == 180 and st['planEnd'] == '2027-05-20',
+    check('180일 기간 적용', st['settings']['days'] == 180 and st['planEnd'] == END180,
           (st['settings'], st['planEnd']))
     check('180일 하루 분량 증가', st['todayItems'] >= 6, st['todayItems'])
     pg.click('[data-action="setDays"][data-v="365"]')
@@ -217,11 +239,11 @@ with sync_playwright() as p:
     pg.wait_for_timeout(300)
 
     # 시작일 input
-    pg.fill('#startInput', '2026-11-25')
+    pg.fill('#startInput', PLUS3)
     pg.wait_for_timeout(400)
     st = pg.evaluate('window.__bibleDebug.summary()')
-    check('시작일 변경', st['settings']['start'] == '2026-11-25' and st['planStart'] == '2026-11-25', st)
-    pg.fill('#startInput', '2026-11-22')
+    check('시작일 변경', st['settings']['start'] == PLUS3 and st['planStart'] == PLUS3, st)
+    pg.fill('#startInput', TODAY)
     pg.wait_for_timeout(400)
 
     # =========================================================
@@ -252,7 +274,7 @@ with sync_playwright() as p:
     # =========================================================
     pg.click('[data-action="tab"][data-tab="calendar"]')
     pg.wait_for_timeout(300)
-    check('캘린더 11월', pg.is_visible('text=2026년 11월'))
+    check('캘린더 이번 달', pg.is_visible('text=' + MONTH_LABEL))
     check('캘린더 오늘 칸', pg.locator('.cell.today').count() == 1)
     pg.click('.cell.today')
     pg.wait_for_timeout(350)
@@ -281,7 +303,7 @@ with sync_playwright() as p:
     exported = json.load(open(backup_path, encoding='utf-8'))
     check('JSON 내보내기 앱 이름', exported.get('app') == 'bible-reading')
     check('JSON 내보내기 기록 포함', len(exported.get('pass', {})) >= 1, exported.get('pass'))
-    check('JSON 내보내기 설정 포함', exported.get('settings', {}).get('start') == '2026-11-22', exported.get('settings'))
+    check('JSON 내보내기 설정 포함', exported.get('settings', {}).get('start') == TODAY, exported.get('settings'))
 
     pg.once('dialog', lambda d: d.accept())
     pg.click('[data-action="resetAll"]')
@@ -293,7 +315,7 @@ with sync_playwright() as p:
     pg.wait_for_timeout(600)
     st = pg.evaluate('window.__bibleDebug.summary()')
     check('백업 복원 기록', st['passCount'] >= 1, st['passCount'])
-    check('백업 복원 설정', st['settings']['start'] == '2026-11-22', st['settings'])
+    check('백업 복원 설정', st['settings']['start'] == TODAY, st['settings'])
 
     # =========================================================
     # G. PWA·레이아웃 (모바일)
@@ -338,11 +360,11 @@ with sync_playwright() as p:
     # =========================================================
     ctx2, pg2 = new_page(browser)
     pg2.goto(BASE + 'index.html', wait_until='networkidle')
-    pg2.evaluate("""() => {
+    pg2.evaluate("""(start) => {
         localStorage.clear();
         localStorage.setItem('bible-reading-settings', JSON.stringify(
-          {rounds:1, mode:'seq', start:'2026-11-12', days:365}));
-    }""")
+          {rounds:1, mode:'seq', start:start, days:365}));
+    }""", MINUS10)
     pg2.reload(wait_until='networkidle')
     sm = pg2.evaluate('window.__bibleDebug.summary()')
     check('10일 지난 계획의 밀린 분량', sm['pendingPast'] == 33, sm['pendingPast'])
