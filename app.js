@@ -422,6 +422,9 @@ function viewToday() {
   const dayNo = daysBetween(plan.start, date) + 1;
   const p = progress();
   const missed = pendingPast();
+  const roundsInDay = new Set(items.map(function (s) { return s.r; }));
+  const roundNote = settings.rounds > 1 && roundsInDay.size === 1 && items.length && items[0].r > 0
+    ? (items[0].r + 1) + '회독 · ' : '';
 
   if (missed > 0) {
     const dayLeft = Math.max(1, daysBetween(t, plan.end) + 1);
@@ -443,7 +446,7 @@ function viewToday() {
     '</div>' +
     '<div class="hero-num' + (allDone ? ' done' : '') + '">' + (items.length ? done + '<small>/' + items.length + '장</small>' : '쉼<small></small>') + '</div>' +
     '<div class="hero-sub">' + (before ? '첫날 분량이에요. 하루 전 미리 봐도 좋아요.' :
-      (allDone ? '오늘 분량을 다 읽었어요!' : '오늘의 분량 · ' + (settings.mode === 'mix' ? '구약 + 신약/시편·잠언' : '순서대로 읽기'))) + '</div>' +
+      (allDone ? roundNote + '오늘 분량을 다 읽었어요!' : roundNote + '오늘의 분량 · ' + (settings.mode === 'mix' ? '구약 + 신약/시편·잠언' : '순서대로 읽기'))) + '</div>' +
     (items.length ? '<div class="metric">' +
       '<div class="bar' + (allDone ? ' green' : '') + '"><i style="width:' + pct(done, items.length) + '%"></i></div>' +
       '<div class="foot"><span>' + done + ' / ' + items.length + '장 완료</span><span>' + pct(done, items.length) + '%</span></div>' +
