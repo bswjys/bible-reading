@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>성경 통독</title>
 <meta name="description" content="1년 1~3독 성경 통독 계획과 장별 체크, 밀린 분량 다시 맞추기">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -194,7 +194,7 @@ main{max-width:560px;margin:0 auto;padding:0 20px calc(84px + var(--safe-b));}
 .set-row .k{font-weight:700}
 .set-row .d{font-size:12px;color:var(--tx2);font-weight:600;margin-top:2px}
 .set-row .v{font-weight:700;color:var(--tx2);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
-input[type=date]{font:inherit;font-size:14px;font-weight:700;color:var(--tx);border:1px solid var(--line);background:#F7F8FA;border-radius:10px;padding:8px 10px;-webkit-appearance:none;appearance:none;min-width:148px;text-align:left}
+input[type=date]{font:inherit;font-size:16px;font-weight:700;color:var(--tx);border:1px solid var(--line);background:#F7F8FA;border-radius:10px;padding:8px 10px;-webkit-appearance:none;appearance:none;min-width:148px;text-align:left}
 input[type=date]::-webkit-date-and-time-value{text-align:left}
 .set-block{padding:16px}
 .set-block+.set-block{border-top:1px solid var(--line2)}
@@ -307,6 +307,19 @@ details.guide[open] summary::after{content:"–"}
   main{padding-bottom:calc(88px + var(--safe-b))}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ===== 아이폰 화면 고정 (2026-11-28) =====
+   사파리·홈 화면 앱에서 화면이 커졌다 작아졌다 하지 않도록
+   - 입력창 글자는 16px 이상(아이폰 자동 확대 방지)
+   - 가로 넘침·바운스 스크롤 막음, 글자 자동 확대 막음 */
+html, body {
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+html { touch-action: manipulation; }
+input, textarea, select { font-size: max(16px, 1em); }
 </style>
 </head>
 <body>
