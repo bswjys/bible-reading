@@ -389,7 +389,7 @@ function appSubText() {
 }
 
 function render(animate) {
-  const y = window.scrollY;
+  const y = document.body.classList.contains('modal-open') && lockedScrollY !== null ? lockedScrollY : window.scrollY;
   const titles = { today: '오늘', table: '읽기표', calendar: '캘린더', more: '더보기' };
   document.getElementById('appTitle').textContent = titles[state.view];
   document.getElementById('appSub').textContent = appSubText();
@@ -756,6 +756,27 @@ function viewMore() {
 }
 
 /* ---------- 하루 시트 ---------- */
+/* 모달·추가창 화면 고정 (2026-11-28)
+   시트를 열 때 스크롤 위치를 저장하고 body를 fixed로 잠가 배경이 흔들리지 않게 한다. */
+let lockedScrollY = null;
+function syncSheetLock() {
+  const sheet = document.getElementById('sheet');
+  const open = !!(sheet && sheet.classList.contains('on'));
+  const isLocked = document.body.classList.contains('modal-open');
+
+  if (open && !isLocked) {
+    lockedScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+    document.body.style.top = `-${lockedScrollY}px`;
+    document.body.classList.add('modal-open');
+  } else if (!open && isLocked) {
+    document.body.classList.remove('modal-open');
+    document.body.style.top = '';
+    const backY = lockedScrollY || 0;
+    lockedScrollY = null;
+    window.scrollTo(0, backY);
+  }
+}
+
 function renderSheet() {
   const sheet = document.getElementById('sheet');
   const backdrop = document.getElementById('backdrop');
@@ -766,6 +787,7 @@ function renderSheet() {
     backdrop.classList.remove('on');
     sheet.setAttribute('aria-hidden', 'true');
     body.innerHTML = '';
+    syncSheetLock();
     return;
   }
   const items = dayItems(date);
@@ -793,6 +815,7 @@ function renderSheet() {
   sheet.classList.add('on');
   backdrop.classList.add('on');
   sheet.setAttribute('aria-hidden', 'false');
+  syncSheetLock();
 }
 
 /* =========================================================
